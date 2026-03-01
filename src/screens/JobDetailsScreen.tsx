@@ -1,8 +1,8 @@
 import React from 'react';
 import { ScrollView, View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useJobs } from '../context/JobContext';
-import { formStyles as styles } from '../styles/formStyles';
 import { getRouter } from '../utils/router';
+import { getStyles } from '../styles/JobDetailsScreenStyles'; // Updated import path
 
 export const JobDetailsScreen = ({ route, navigation }: any) => {
   const { job } = route.params;
@@ -16,28 +16,30 @@ export const JobDetailsScreen = ({ route, navigation }: any) => {
     border: isDarkMode ? '#30363D' : '#E1E4E8'
   };
 
+  const localStyles = getStyles(theme, isDarkMode);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, marginTop: 20 }]}>
-          <Text style={[styles.title, { color: theme.text }]}>{job.title}</Text>
-          <Text style={styles.companyName}>{job.companyName}</Text>
+        <View style={[localStyles.card, { backgroundColor: theme.card, borderColor: theme.border, marginTop: 20 }]}>
+          <Text style={[localStyles.title, { color: theme.text }]}>{job.title}</Text>
+          <Text style={localStyles.companyName}>{job.companyName}</Text>
           
-          <View style={{ marginVertical: 15, padding: 12, backgroundColor: isDarkMode ? '#0D1117' : '#F0F2F5', borderRadius: 8 }}>
-             <Text style={{ color: '#28a745', fontWeight: '800' }}>
+          <View style={localStyles.salaryContainer}>
+             <Text style={localStyles.salaryText}>
                💰 {job.salary || 'Salary: Competitive'}
              </Text>
           </View>
 
-          <Text style={[styles.bodyText, { color: theme.text }]}>
+          <Text style={[localStyles.bodyText, { color: theme.text }]}>
             {job.description?.replace(/<[^>]+>/g, '')}
           </Text>
 
           <TouchableOpacity 
-            style={[styles.submitBtn, { marginTop: 30 }]} 
+            style={[localStyles.submitBtn, { marginTop: 30 }]} 
             onPress={() => router.push('ApplyScreen', { job })}
           >
-            <Text style={styles.submitBtnText}>Apply Now</Text>
+            <Text style={localStyles.submitBtnText}>Apply Now</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

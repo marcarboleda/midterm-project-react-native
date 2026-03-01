@@ -1,12 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, ScrollView, 
-  StyleSheet, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard 
+  Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard 
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useJobs } from '../context/JobContext';
 import { Ionicons } from '@expo/vector-icons';
 import { getRouter } from '../utils/router';
+import { getStyles } from '../styles/ApplyScreenStyles'; // Updated import path
 
 export const ApplyScreen = ({ route, navigation }: any) => {
   const { job } = route.params;
@@ -18,13 +19,6 @@ export const ApplyScreen = ({ route, navigation }: any) => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', hireReason: '' });
   const [errors, setErrors] = useState<any>({});
 
-  const FIELD_POSITIONS = {
-    name: 0,
-    email: 80,
-    phone: 180,
-    hireReason: 300
-  };
-
   const theme = {
     bg: isDarkMode ? '#0D1117' : '#F3F2EF',
     text: isDarkMode ? '#FFFFFF' : '#1F2328',
@@ -34,6 +28,15 @@ export const ApplyScreen = ({ route, navigation }: any) => {
     inputBg: isDarkMode ? '#0D1117' : '#F9FAFB',
     placeholder: isDarkMode ? '#8B949E' : '#999999',
     error: '#FF4444',
+  };
+
+  const localStyles = getStyles(theme);
+
+  const FIELD_POSITIONS = {
+    name: 0,
+    email: 80,
+    phone: 180,
+    hireReason: 300
   };
 
   useEffect(() => {
@@ -210,17 +213,3 @@ export const ApplyScreen = ({ route, navigation }: any) => {
     </View>
   );
 };
-
-const localStyles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, paddingVertical: 15, borderBottomWidth: 1 },
-  backBtn: { padding: 5 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold' },
-  jobSummary: { padding: 15, borderRadius: 12, borderWidth: 1, marginBottom: 20 },
-  jobTitle: { fontSize: 16, fontWeight: 'bold' },
-  label: { fontSize: 14, fontWeight: '600', marginBottom: 8, marginTop: 15 },
-  input: { borderWidth: 1, borderRadius: 10, padding: 15, fontSize: 15 },
-  textArea: { height: 150, paddingTop: 15 },
-  errorLabel: { color: '#FF4444', fontSize: 12, marginTop: 5, marginLeft: 5, fontWeight: '500' },
-  submitBtn: { backgroundColor: '#0A66C2', padding: 18, borderRadius: 12, alignItems: 'center', marginTop: 30 },
-  submitBtnText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' }
-});

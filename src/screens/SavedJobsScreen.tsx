@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import { useJobs } from '../context/JobContext';
 import { JobCard } from '../components/JobCard';
 import { commonStyles as styles } from '../styles/commonStyles';
 import { Ionicons } from '@expo/vector-icons';
+import { getStyles } from '../styles/SavedJobsScreenStyles';
 
 export const SavedJobsScreen = ({ navigation }: any) => {
   const { jobs, savedJobIds, setSavedJobIds, isDarkMode, toggleSave } = useJobs();
@@ -21,6 +22,8 @@ export const SavedJobsScreen = ({ navigation }: any) => {
     selectionBg: isDarkMode ? '#1C2128' : '#E7F3FF'
   };
 
+  const localStyles = getStyles(theme, isDarkMode);
+
   const savedJobs = jobs.filter((job: any) => savedJobIds.includes(job.id));
 
   const toggleSelection = (id: string) => {
@@ -33,7 +36,6 @@ export const SavedJobsScreen = ({ navigation }: any) => {
     if (selectedIds.length === savedJobs.length) {
       setSelectedIds([]);
     } else {
-      // Fixed: Added explicit type (j: any) to resolve TS7006
       setSelectedIds(savedJobs.map((j: any) => j.id));
     }
   };
@@ -48,7 +50,6 @@ export const SavedJobsScreen = ({ navigation }: any) => {
           text: "Remove", 
           style: "destructive", 
           onPress: () => {
-            // Fixed: Added explicit type (id: string) to resolve TS7006
             setSavedJobIds(savedJobIds.filter((id: string) => !selectedIds.includes(id)));
             setSelectedIds([]);
             setIsEditMode(false);
@@ -60,7 +61,6 @@ export const SavedJobsScreen = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
-      {/* Header Section */}
       <View style={[localStyles.header, { borderBottomColor: theme.border }]}>
         <View>
           <Text style={[localStyles.title, { color: theme.text }]}>My Jobs</Text>
@@ -84,7 +84,6 @@ export const SavedJobsScreen = ({ navigation }: any) => {
         )}
       </View>
 
-      {/* Selection Control Bar */}
       {isEditMode && (
         <View style={[localStyles.selectionBar, { backgroundColor: theme.selectionBg }]}>
           <TouchableOpacity onPress={handleSelectAll} style={localStyles.selectionRow}>
@@ -153,7 +152,6 @@ export const SavedJobsScreen = ({ navigation }: any) => {
         />
       )}
 
-      {/* Floating Action Button for Delete */}
       {isEditMode && selectedIds.length > 0 && (
         <View style={localStyles.footerContainer}>
           <TouchableOpacity 
@@ -169,117 +167,3 @@ export const SavedJobsScreen = ({ navigation }: any) => {
     </SafeAreaView>
   );
 };
-
-const localStyles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-  },
-  subtitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginTop: 2,
-  },
-  editBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  selectionBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  selectionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  selectionText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  countText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  cardContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkArea: {
-    paddingLeft: 20,
-    justifyContent: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  emptySubtext: {
-    fontSize: 15,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 30,
-  },
-  browseBtn: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 25,
-  },
-  browseText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  footerContainer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  deleteFab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-  },
-  deleteFabText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
