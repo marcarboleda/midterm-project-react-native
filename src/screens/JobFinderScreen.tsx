@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   View, Text, FlatList, TouchableOpacity, ScrollView, 
-  StatusBar, TextInput, RefreshControl, Modal, StyleSheet, ActivityIndicator, Image
+  StatusBar, TextInput, RefreshControl, Modal, StyleSheet, ActivityIndicator, Image, Keyboard
 } from 'react-native';
 import { useJobs } from '../context/JobContext';
 import { JobCard } from '../components/JobCard';
 import { commonStyles as styles } from '../styles/commonStyles';
 import { Ionicons } from '@expo/vector-icons';
-import { getRouter } from '../utils/router'; // Updated import
+import { getRouter } from '../utils/router';
 
 export const JobFinderScreen = ({ navigation }: any) => {
   const { jobs, isDarkMode, setIsDarkMode, fetchJobs, isLoading, savedJobIds, toggleSave } = useJobs();
@@ -17,7 +17,7 @@ export const JobFinderScreen = ({ navigation }: any) => {
   const [selectedJob, setSelectedJob] = useState<any>(null); 
   const [activeTab, setActiveTab] = useState('Description'); 
   const listRef = useRef<FlatList>(null);
-  const router = getRouter(navigation); // Initialized router
+  const router = getRouter(navigation);
   
   const filters = ['All', 'Full time', 'Part time', 'Contract', 'Internship'];
 
@@ -60,6 +60,25 @@ export const JobFinderScreen = ({ navigation }: any) => {
       return jobType === selectedFilter;
     });
   }, [jobs, search, filter]);
+
+  const renderEmptyState = () => (
+    <View style={localStyles.emptyContainer}>
+      <Ionicons name="search-outline" size={80} color={theme.border} />
+      <Text style={[localStyles.emptyTitle, { color: theme.text }]}>No jobs found</Text>
+      <Text style={[localStyles.emptySubtext, { color: theme.secondaryText }]}>
+        We couldn't find any results for "{search}". Try adjusting your keywords or filters.
+      </Text>
+      <TouchableOpacity 
+        style={[localStyles.clearSearchBtn, { backgroundColor: theme.accent }]}
+        onPress={() => {
+            setSearch('');
+            setFilter('All');
+        }}
+      >
+        <Text style={{ color: '#FFF', fontWeight: 'bold' }}>Clear all filters</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   const formatContent = (html: string, section: string) => {
     if (!html) return <Text style={{ color: theme.text }}>No info available.</Text>;
@@ -136,7 +155,7 @@ export const JobFinderScreen = ({ navigation }: any) => {
                 onPress={() => {
                   const jobToApply = selectedJob;
                   setSelectedJob(null);
-                  router.push('ApplyScreen', { job: jobToApply }); // Updated to router.push
+                  router.push('ApplyScreen', { job: jobToApply });
                 }}
               >
                 <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Apply Now</Text>
@@ -166,13 +185,19 @@ export const JobFinderScreen = ({ navigation }: any) => {
         </View>
 
         <View style={[localStyles.searchBar, { backgroundColor: theme.cardBg, borderColor: theme.border }]}>
-          <Ionicons name="search" size={20} color="#888" />
+          <Ionicons name="search" size={20} color={theme.secondaryText} />
           <TextInput
             placeholder="Search role or company..."
-            placeholderTextColor="#888"
+            placeholderTextColor={theme.secondaryText}
             style={{ flex: 1, marginLeft: 10, color: theme.text, paddingVertical: 10 }}
+            value={search}
             onChangeText={(t) => setSearch(t)}
           />
+          {search.length > 0 && (
+            <TouchableOpacity onPress={() => setSearch('')} style={localStyles.clearIcon}>
+              <Ionicons name="close-circle" size={20} color={theme.secondaryText} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -194,6 +219,8 @@ export const JobFinderScreen = ({ navigation }: any) => {
         ref={listRef}
         data={displayJobs}
         keyExtractor={(item) => item.id}
+        ListEmptyComponent={renderEmptyState}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
         refreshControl={
           <RefreshControl 
             refreshing={refreshing} 
@@ -209,7 +236,7 @@ export const JobFinderScreen = ({ navigation }: any) => {
             isSaved={savedJobIds.includes(item.id)}
             onSave={() => toggleSave(item.id)}
             onOpenDetails={() => setSelectedJob(item)}
-            onApply={() => router.push('ApplyScreen', { job: item })} // Updated to router.push
+            onApply={() => router.push('ApplyScreen', { job: item })}
           />
         )}
       />
@@ -219,6 +246,7 @@ export const JobFinderScreen = ({ navigation }: any) => {
 
 const localStyles = StyleSheet.create({
   searchBar: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 12, marginTop: 15, borderWidth: 1 },
+  clearIcon: { padding: 5 },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
   modal: { height: '90%', borderTopLeftRadius: 30, borderTopRightRadius: 30 },
   modalHeader: { flexDirection: 'row', padding: 15, alignItems: 'center', justifyContent: 'space-between' },
@@ -236,5 +264,10 @@ const localStyles = StyleSheet.create({
   bodyText: { fontSize: 15, lineHeight: 24 },
   footerActions: { padding: 20, borderTopWidth: 1, flexDirection: 'row', gap: 12, position: 'absolute', bottom: 0, left: 0, right: 0 },
   applyBtn: { flex: 1, backgroundColor: '#0A66C2', padding: 18, borderRadius: 15, alignItems: 'center' },
-  saveBtnAction: { padding: 16, borderRadius: 15, borderWidth: 1, justifyContent: 'center' }
+  saveBtnAction: { padding: 16, borderRadius: 15, borderWidth: 1, justifyContent: 'center' },
+  // Empty State Styles
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40, marginTop: 50 },
+  emptyTitle: { fontSize: 20, fontWeight: 'bold', marginTop: 20 },
+  emptySubtext: { fontSize: 15, textAlign: 'center', marginTop: 10, lineHeight: 22 },
+  clearSearchBtn: { marginTop: 25, paddingHorizontal: 25, paddingVertical: 12, borderRadius: 10 }
 });

@@ -66,21 +66,15 @@ export const ApplyScreen = ({ route, navigation }: any) => {
   const handleApply = () => {
     let newErrors: any = {};
     let firstErrorField: string | null = null;
-
-    // Strict Email RegEx: ensures text before @, a domain, and a TLD (e.g. .com)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // Validation Logic
     if (!form.name.trim()) {
       newErrors.name = 'Full name is required';
       if (!firstErrorField) firstErrorField = 'name';
     }
 
-    if (!form.email.trim()) {
-      newErrors.email = 'Email is required';
-      if (!firstErrorField) firstErrorField = 'email';
-    } else if (!emailRegex.test(form.email.trim())) {
-      newErrors.email = 'Please enter a valid email (e.g. name@example.com)';
+    if (!form.email.trim() || !emailRegex.test(form.email.trim())) {
+      newErrors.email = 'Valid email is required (e.g. name@domain.com)';
       if (!firstErrorField) firstErrorField = 'email';
     }
 
@@ -119,7 +113,6 @@ export const ApplyScreen = ({ route, navigation }: any) => {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={{ flex: 1, paddingTop: insets.top }}>
-            
             <View style={[localStyles.header, { borderBottomColor: theme.border }]}>
               <TouchableOpacity onPress={handleBackWithConfirmation} style={localStyles.backBtn}>
                 <Ionicons name="arrow-back" size={24} color={theme.text} />
@@ -209,7 +202,6 @@ export const ApplyScreen = ({ route, navigation }: any) => {
               <TouchableOpacity style={localStyles.submitBtn} onPress={handleApply}>
                 <Text style={localStyles.submitBtnText}>Submit Application</Text>
               </TouchableOpacity>
-              
               <View style={{ height: 100 }} />
             </ScrollView>
           </View>

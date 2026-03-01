@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, View, Text, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useJobs } from '../context/JobContext';
 import { formStyles as styles } from '../styles/formStyles';
 import { getRouter } from '../utils/router';
@@ -25,7 +25,7 @@ export const JobDetailsScreen = ({ route, navigation }: any) => {
           
           <View style={{ marginVertical: 15, padding: 12, backgroundColor: isDarkMode ? '#0D1117' : '#F0F2F5', borderRadius: 8 }}>
              <Text style={{ color: '#28a745', fontWeight: '800' }}>
-                💰 {job.salary || 'Salary: Competitive'}
+               💰 {job.salary || 'Salary: Competitive'}
              </Text>
           </View>
 

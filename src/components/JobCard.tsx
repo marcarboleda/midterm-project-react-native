@@ -49,7 +49,13 @@ export const JobCard = ({ job, onApply, onOpenDetails, isSaved, onSave }: any) =
 
       <View style={cardLocalStyles.footer}>
         <Text style={[cardLocalStyles.salary, { color: "#2DA44E" }]}>{job.salary}</Text>
-        <TouchableOpacity style={cardLocalStyles.applyBtn} onPress={(e) => { e.stopPropagation(); onApply(); }}>
+        <TouchableOpacity 
+          style={cardLocalStyles.applyBtn} 
+          onPress={(e) => { 
+            e.stopPropagation(); 
+            onApply(); 
+          }}
+        >
           <Text style={cardLocalStyles.applyText}>Apply</Text>
         </TouchableOpacity>
       </View>
