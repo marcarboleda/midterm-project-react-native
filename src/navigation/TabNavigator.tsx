@@ -4,7 +4,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { JobFinderScreen } from '../screens/JobFinderScreen';
 import { SavedJobsScreen } from '../screens/SavedJobsScreen';
-import { ApplicationForm } from '../screens/ApplicationForm'; 
 import { ApplyScreen } from '../screens/ApplyScreen';
 import { Ionicons } from '@expo/vector-icons';
 import { useJobs } from '../context/JobContext';
@@ -15,7 +14,6 @@ const Stack = createNativeStackNavigator();
 const HomeStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="JobFinderHome" component={JobFinderScreen} />
-    <Stack.Screen name="ApplicationForm" component={ApplicationForm} />
     <Stack.Screen name="ApplyScreen" component={ApplyScreen} />
   </Stack.Navigator>
 );

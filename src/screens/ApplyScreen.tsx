@@ -1,26 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, ScrollView, 
-  StyleSheet, Alert, KeyboardAvoidingView, Platform 
+  StyleSheet, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard 
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useJobs } from '../context/JobContext';
 import { Ionicons } from '@expo/vector-icons';
-import { getRouter } from '../utils/router'; // Updated import
+import { getRouter } from '../utils/router';
 
 export const ApplyScreen = ({ route, navigation }: any) => {
   const { job } = route.params;
   const { isDarkMode } = useJobs();
   const insets = useSafeAreaInsets();
-  const router = getRouter(navigation); // Initialized router
+  const router = getRouter(navigation);
+  const scrollRef = useRef<ScrollView>(null);
 
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    portfolio: ''
-  });
-
+  const [form, setForm] = useState({ name: '', email: '', phone: '', hireReason: '' });
   const [errors, setErrors] = useState<any>({});
 
   const theme = {
@@ -30,121 +25,171 @@ export const ApplyScreen = ({ route, navigation }: any) => {
     border: isDarkMode ? '#30363D' : '#E1E4E8',
     accent: '#0A66C2',
     inputBg: isDarkMode ? '#0D1117' : '#F9FAFB',
-    error: '#F85149'
+    placeholder: isDarkMode ? '#8B949E' : '#999999', // Unified placeholder color
+    error: '#FF4444',
   };
 
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const scrollToInput = (y: number) => {
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({ y, animated: true });
+    }, 100);
+  };
+
+  const handleBackWithConfirmation = () => {
+    const hasInput = Object.values(form).some(value => value.trim().length > 0);
+    if (hasInput) {
+      Alert.alert("Discard Changes?", "Your application data will be lost.", [
+        { text: "Keep Editing", style: "cancel" },
+        { text: "Discard", style: "destructive", onPress: () => router.back() }
+      ]);
+    } else {
+      router.back();
+    }
   };
 
   const handleApply = () => {
     let newErrors: any = {};
-
     if (!form.name.trim()) newErrors.name = 'Full name is required';
     if (!form.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!validateEmail(form.email)) {
-      newErrors.email = 'Please enter a valid email address';
+    } else if (!form.email.includes('@')) {
+      newErrors.email = 'Enter a valid email address';
     }
-    if (!form.phone.trim()) newErrors.phone = 'Contact number is required';
-    if (!form.portfolio.trim()) newErrors.portfolio = 'Portfolio/Resume link is required';
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
+    if (!form.phone.trim()) {
+      newErrors.phone = 'Contact number is required';
+    } else if (form.phone.replace(/[^0-9]/g, '').length < 10) {
+      newErrors.phone = 'Enter a valid 10-digit number';
+    }
+    if (!form.hireReason.trim()) {
+      newErrors.hireReason = 'Please tell us why we should hire you';
+    } else if (form.hireReason.trim().length < 20) {
+      newErrors.hireReason = 'Please provide at least 20 characters';
     }
 
-    Alert.alert(
-      "Application Sent!",
-      `Your application for ${job.title} has been submitted.`,
-      [{ 
-        text: "OK", 
-        onPress: () => router.replace('JobFinderHome') // Updated to router.replace
-      }]
-    );
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    Alert.alert("Confirm Submission", "Are you sure you want to submit your application?", [
+      { text: "Review", style: "cancel" },
+      { text: "Submit", onPress: () => {
+          Alert.alert("Success!", "Your application has been sent.", [
+            { text: "OK", onPress: () => router.replace('JobFinderHome') }
+          ]);
+      }}
+    ]);
+  };
+
+  const getBorderColor = (fieldName: string) => {
+    return errors[fieldName] ? theme.error : theme.border;
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: theme.bg, paddingTop: insets.top }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <View style={[localStyles.header, { borderBottomColor: theme.border }]}>
-          <TouchableOpacity onPress={() => router.back()} style={localStyles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={theme.text} />
-          </TouchableOpacity>
-          <Text style={[localStyles.headerTitle, { color: theme.text }]}>Apply for Role</Text>
-          <View style={{ width: 40 }} />
-        </View>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={{ flex: 1, paddingTop: insets.top }}>
+            
+            <View style={[localStyles.header, { borderBottomColor: theme.border }]}>
+              <TouchableOpacity onPress={handleBackWithConfirmation} style={localStyles.backBtn}>
+                <Ionicons name="arrow-back" size={24} color={theme.text} />
+              </TouchableOpacity>
+              <Text style={[localStyles.headerTitle, { color: theme.text }]}>Apply for Role</Text>
+              <View style={{ width: 40 }} />
+            </View>
 
-        <ScrollView contentContainerStyle={{ padding: 20 }}>
-          <View style={[localStyles.jobSummary, { backgroundColor: theme.card, borderColor: theme.border }]}>
-            <Text style={[localStyles.jobTitle, { color: theme.text }]}>{job.title}</Text>
-            <Text style={{ color: theme.accent, fontWeight: '600' }}>{job.companyName}</Text>
+            <ScrollView 
+              ref={scrollRef}
+              style={{ flex: 1 }}
+              contentContainerStyle={{ padding: 20, paddingBottom: 150 }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View style={[localStyles.jobSummary, { backgroundColor: theme.card, borderColor: theme.border }]}>
+                <Text style={[localStyles.jobTitle, { color: theme.text }]}>{job.title}</Text>
+                <Text style={{ color: theme.accent, fontWeight: '600' }}>{job.companyName}</Text>
+              </View>
+
+              {/* Name Field */}
+              <Text style={[localStyles.label, { color: theme.text }]}>Full Name *</Text>
+              <TextInput
+                style={[localStyles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: getBorderColor('name') }]}
+                placeholder="Enter your name"
+                placeholderTextColor={theme.placeholder}
+                value={form.name}
+                onFocus={() => scrollToInput(0)}
+                onChangeText={(t) => {
+                    setForm({...form, name: t});
+                    if (errors.name) setErrors({...errors, name: null});
+                }}
+              />
+              {errors.name && <Text style={localStyles.errorLabel}>{errors.name}</Text>}
+
+              {/* Email Field */}
+              <Text style={[localStyles.label, { color: theme.text }]}>Email Address *</Text>
+              <TextInput
+                style={[localStyles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: getBorderColor('email') }]}
+                placeholder="Enter your email"
+                placeholderTextColor={theme.placeholder} // Consistent color
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false} // Prevents unwanted highlight/behavior
+                value={form.email}
+                onFocus={() => scrollToInput(80)}
+                onChangeText={(t) => {
+                    setForm({...form, email: t});
+                    if (errors.email) setErrors({...errors, email: null});
+                }}
+              />
+              {errors.email && <Text style={localStyles.errorLabel}>{errors.email}</Text>}
+
+              {/* Phone Field */}
+              <Text style={[localStyles.label, { color: theme.text }]}>Contact Number *</Text>
+              <TextInput
+                style={[localStyles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: getBorderColor('phone') }]}
+                placeholder="Enter phone number"
+                placeholderTextColor={theme.placeholder}
+                keyboardType="phone-pad"
+                value={form.phone}
+                onFocus={() => scrollToInput(160)}
+                onChangeText={(t) => {
+                    setForm({...form, phone: t});
+                    if (errors.phone) setErrors({...errors, phone: null});
+                }}
+              />
+              {errors.phone && <Text style={localStyles.errorLabel}>{errors.phone}</Text>}
+
+              {/* Hire Reason Field */}
+              <Text style={[localStyles.label, { color: theme.text }]}>Why should we hire you? *</Text>
+              <TextInput
+                style={[
+                  localStyles.input, 
+                  localStyles.textArea,
+                  { backgroundColor: theme.inputBg, color: theme.text, borderColor: getBorderColor('hireReason') }
+                ]}
+                placeholder="Tell us about your experience..."
+                placeholderTextColor={theme.placeholder}
+                multiline
+                textAlignVertical="top"
+                value={form.hireReason}
+                onFocus={() => scrollToInput(300)} 
+                onChangeText={(t) => {
+                    setForm({...form, hireReason: t});
+                    if (errors.hireReason) setErrors({...errors, hireReason: null});
+                }}
+              />
+              {errors.hireReason && <Text style={localStyles.errorLabel}>{errors.hireReason}</Text>}
+
+              <TouchableOpacity style={localStyles.submitBtn} onPress={handleApply}>
+                <Text style={localStyles.submitBtnText}>Submit Application</Text>
+              </TouchableOpacity>
+              
+              <View style={{ height: 200 }} />
+            </ScrollView>
           </View>
-
-          <Text style={[localStyles.label, { color: theme.text }]}>Full Name *</Text>
-          <TextInput
-            style={[localStyles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: errors.name ? theme.error : theme.border }]}
-            placeholder="John Doe"
-            placeholderTextColor="#888"
-            value={form.name}
-            onChangeText={(t) => {
-              setForm({...form, name: t});
-              setErrors({...errors, name: null});
-            }}
-          />
-          {errors.name && <Text style={localStyles.errorText}>{errors.name}</Text>}
-
-          <Text style={[localStyles.label, { color: theme.text }]}>Email Address *</Text>
-          <TextInput
-            style={[localStyles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: errors.email ? theme.error : theme.border }]}
-            placeholder="john@example.com"
-            placeholderTextColor="#888"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={form.email}
-            onChangeText={(t) => {
-              setForm({...form, email: t});
-              setErrors({...errors, email: null});
-            }}
-          />
-          {errors.email && <Text style={localStyles.errorText}>{errors.email}</Text>}
-
-          <Text style={[localStyles.label, { color: theme.text }]}>Contact Number *</Text>
-          <TextInput
-            style={[localStyles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: errors.phone ? theme.error : theme.border }]}
-            placeholder="09123456789"
-            placeholderTextColor="#888"
-            keyboardType="numeric"
-            value={form.phone}
-            onChangeText={(t) => {
-              const cleaned = t.replace(/[^0-9]/g, '');
-              setForm({...form, phone: cleaned});
-              setErrors({...errors, phone: null});
-            }}
-          />
-          {errors.phone && <Text style={localStyles.errorText}>{errors.phone}</Text>}
-
-          <Text style={[localStyles.label, { color: theme.text }]}>Portfolio / Resume URL *</Text>
-          <TextInput
-            style={[localStyles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: errors.portfolio ? theme.error : theme.border }]}
-            placeholder="https://linkedin.com/in/..."
-            placeholderTextColor="#888"
-            autoCapitalize="none"
-            value={form.portfolio}
-            onChangeText={(t) => {
-              setForm({...form, portfolio: t});
-              setErrors({...errors, portfolio: null});
-            }}
-          />
-          {errors.portfolio && <Text style={localStyles.errorText}>{errors.portfolio}</Text>}
-
-          <TouchableOpacity style={localStyles.submitBtn} onPress={handleApply}>
-            <Text style={localStyles.submitBtnText}>Submit Application</Text>
-          </TouchableOpacity>
-        </ScrollView>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </View>
   );
@@ -154,11 +199,12 @@ const localStyles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 15, paddingVertical: 15, borderBottomWidth: 1 },
   backBtn: { padding: 5 },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
-  jobSummary: { padding: 15, borderRadius: 12, borderWidth: 1, marginBottom: 25 },
-  jobTitle: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  jobSummary: { padding: 15, borderRadius: 12, borderWidth: 1, marginBottom: 20 },
+  jobTitle: { fontSize: 16, fontWeight: 'bold' },
   label: { fontSize: 14, fontWeight: '600', marginBottom: 8, marginTop: 15 },
   input: { borderWidth: 1, borderRadius: 10, padding: 15, fontSize: 15 },
-  errorText: { color: '#F85149', fontSize: 12, marginTop: 5, marginLeft: 5 },
-  submitBtn: { backgroundColor: '#0A66C2', padding: 18, borderRadius: 12, alignItems: 'center', marginTop: 30, marginBottom: 50 },
+  textArea: { height: 150, paddingTop: 15 },
+  errorLabel: { color: '#FF4444', fontSize: 12, marginTop: 5, marginLeft: 5, fontWeight: '500' },
+  submitBtn: { backgroundColor: '#0A66C2', padding: 18, borderRadius: 12, alignItems: 'center', marginTop: 30 },
   submitBtnText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' }
 });
