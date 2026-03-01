@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 import { useJobs } from '../context/JobContext';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -12,6 +12,21 @@ export const JobCard = ({ job, onApply, onOpenDetails, isSaved, onSave }: any) =
     subText: isDarkMode ? '#8B949E' : '#65676B',
     border: isDarkMode ? '#30363D' : '#E1E4E8',
     accent: '#0A66C2'
+  };
+
+  const handleSavePress = () => {
+    if (isSaved) {
+      Alert.alert(
+        "Remove Bookmark",
+        "Are you sure you want to remove this job from your saved list?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Remove", style: "destructive", onPress: onSave }
+        ]
+      );
+    } else {
+      onSave(); // Save directly without notification
+    }
   };
 
   return (
@@ -31,7 +46,7 @@ export const JobCard = ({ job, onApply, onOpenDetails, isSaved, onSave }: any) =
           <Text style={[cardLocalStyles.title, { color: theme.text }]} numberOfLines={1}>{job.title}</Text>
           <Text style={[cardLocalStyles.company, { color: theme.accent }]}>{job.companyName}</Text>
         </View>
-        <TouchableOpacity onPress={onSave} style={cardLocalStyles.bookmarkBtn}>
+        <TouchableOpacity onPress={handleSavePress} style={cardLocalStyles.bookmarkBtn}>
           <Ionicons name={isSaved ? "bookmark" : "bookmark-outline"} size={22} color={theme.accent} />
         </TouchableOpacity>
       </View>

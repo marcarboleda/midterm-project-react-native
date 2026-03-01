@@ -8,13 +8,12 @@ export const JobProvider = ({ children }: any) => {
   const [jobs, setJobs] = useState([]);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  const [savedJobIds, setSavedJobIds] = useState<string[]>([]); // Added this
+  const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchJobs();
   }, []);
 
-  // Global toggle function
   const toggleSave = (id: string) => {
     setSavedJobIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
@@ -24,8 +23,9 @@ export const JobProvider = ({ children }: any) => {
     const symbol = currency === "USD" ? "$" : (currency || "");
     const formatNum = (num: number) => num >= 1000 ? `${(num / 1000).toFixed(0)}k` : num;
     
-    if (min && max) return `${symbol}${formatNum(min)} - ${symbol}${formatNum(max)}`;
-    return min ? `${symbol}${formatNum(min)}` : `${symbol}${formatNum(max)}`;
+    if (min && max && min !== max) return `${symbol}${formatNum(min)} - ${symbol}${formatNum(max)}`;
+    if (max) return `Up to ${symbol}${formatNum(max)}`;
+    return `${symbol}${formatNum(min)}+`;
   };
 
   const fetchJobs = async () => {
@@ -35,17 +35,32 @@ export const JobProvider = ({ children }: any) => {
       const json = await response.json();
       const rawJobs = json.jobs || [];
 
-      const jobsWithIds = rawJobs.map((job: any) => ({
-        ...job,
-        id: job.guid || uuidv4(),
-        title: job.title || 'Untitled Role',
-        companyName: job.companyName || 'Unknown Company',
-        companyLogo: job.companyLogo || null,
-        location: job.locations ? job.locations[0] : 'Remote',
-        type: job.jobType || 'Full time',
-        salary: formatSalary(job.minSalary, job.maxSalary, job.currency),
-        description: job.description || '',
-      }));
+      const jobsWithIds = rawJobs.map((job: any) => {
+        const rawType = (job.jobType || job.type || '').toLowerCase();
+        let cleanType = 'Full time';
+
+        if (rawType.includes('intern')) {
+          cleanType = 'Internship';
+        } else if (rawType.includes('part')) {
+          cleanType = 'Part time';
+        } else if (rawType.includes('contract')) {
+          cleanType = 'Contract';
+        } else if (rawType.includes('freelance')) {
+          cleanType = 'Freelance';
+        }
+
+        return {
+          ...job,
+          id: job.guid || job.id || uuidv4(),
+          title: job.title || 'Untitled Role',
+          companyName: job.companyName || 'Unknown Company',
+          companyLogo: job.companyLogo || null,
+          location: job.locations ? job.locations[0] : (job.location || 'Remote'),
+          type: cleanType,
+          salary: formatSalary(job.minSalary, job.maxSalary, job.currency),
+          description: job.description || '',
+        };
+      });
       
       setJobs(jobsWithIds as any);
     } catch (error) {
@@ -63,6 +78,7 @@ export const JobProvider = ({ children }: any) => {
       fetchJobs, 
       isLoading,
       savedJobIds,
+      setSavedJobIds, // Added for bulk selection
       toggleSave 
     }}>
       {children}
