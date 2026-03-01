@@ -1,0 +1,47 @@
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { JobFinderScreen } from '../screens/JobFinderScreen';
+import { SavedJobsScreen } from '../screens/SavedJobsScreen';
+import { ApplicationForm } from '../screens/ApplicationForm'; 
+import { ApplyScreen } from '../screens/ApplyScreen';
+import { Ionicons } from '@expo/vector-icons';
+import { useJobs } from '../context/JobContext';
+
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
+// Stack for Home and Details/Apply screens
+const HomeStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="JobFinder" component={JobFinderScreen} />
+    <Stack.Screen name="ApplicationForm" component={ApplicationForm} />
+    <Stack.Screen name="ApplyScreen" component={ApplyScreen} />
+  </Stack.Navigator>
+);
+
+export const TabNavigator = () => {
+  const { isDarkMode } = useJobs();
+
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          let iconName: any = route.name === 'Home' ? 'home-outline' : 'bookmark-outline';
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarStyle: {
+          backgroundColor: isDarkMode ? '#161B22' : '#FFFFFF',
+          borderTopColor: isDarkMode ? '#30363D' : '#E1E4E8',
+          height: 60,
+          paddingBottom: 8
+        },
+        tabBarActiveTintColor: '#0A66C2',
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeStack} />
+      <Tab.Screen name="Saved" component={SavedJobsScreen} />
+    </Tab.Navigator>
+  );
+};
