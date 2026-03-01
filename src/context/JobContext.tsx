@@ -13,38 +13,34 @@ export const JobProvider = ({ children }: any) => {
     fetchJobs();
   }, []);
 
+  const formatSalary = (min: number, max: number, currency: string) => {
+    if (!min && !max) return "Salary Negotiable";
+    const symbol = currency === "USD" ? "$" : (currency || "");
+    const formatNum = (num: number) => num >= 1000 ? `${(num / 1000).toFixed(0)}k` : num;
+    
+    if (min && max) return `${symbol}${formatNum(min)} - ${symbol}${formatNum(max)}`;
+    return min ? `${symbol}${formatNum(min)}` : `${symbol}${formatNum(max)}`;
+  };
+
   const fetchJobs = async () => {
     setIsLoading(true);
     try {
       const response = await fetch('https://empllo.com/api/v1');
       const json = await response.json();
       
-      // LOG THE DATA: Check your terminal/metro bundler to see what the API is actually sending
-      console.log("API Response:", JSON.stringify(json).substring(0, 500));
+      const rawJobs = json.jobs || [];
 
-      // 1. Try to find the array of jobs automatically
-      let rawJobs = [];
-      if (Array.isArray(json)) {
-        rawJobs = json;
-      } else if (json.data && Array.isArray(json.data)) {
-        rawJobs = json.data;
-      } else if (json.jobs && Array.isArray(json.jobs)) {
-        rawJobs = json.jobs;
-      } else {
-        // Fallback: search for any key that contains an array
-        const possibleKey = Object.keys(json).find(key => Array.isArray(json[key]));
-        rawJobs = possibleKey ? json[possibleKey] : [];
-      }
-
-      // 2. Map fields strictly to ensure no 'undefined' crashes
       const jobsWithIds = rawJobs.map((job: any) => ({
         ...job,
-        id: job.guid || job.id || job.job_id || uuidv4(),
-        title: job.title || job.job_title || job.role_name || 'Untitled Role',
-        companyName: job.companyName || job.company_name || job.company || 'Unknown Company',
-        location: job.locations ? job.locations[0] : (job.location || 'Remote'),
-        type: job.jobType || job.job_type || job.type || 'Full time',
-        description: job.description || job.job_description || job.body || '',
+        id: job.guid || uuidv4(),
+        title: job.title || 'Untitled Role',
+        companyName: job.companyName || 'Unknown Company',
+        companyLogo: job.companyLogo || null,
+        location: job.locations ? job.locations[0] : 'Remote',
+        type: job.jobType || 'Full time',
+        // New salary logic based on your sample data
+        salary: formatSalary(job.minSalary, job.maxSalary, job.currency),
+        description: job.description || '',
       }));
       
       setJobs(jobsWithIds as any);
