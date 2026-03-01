@@ -7,16 +7,17 @@ import { useJobs } from '../context/JobContext';
 import { JobCard } from '../components/JobCard';
 import { commonStyles as styles } from '../styles/commonStyles';
 import { Ionicons } from '@expo/vector-icons';
+import { getRouter } from '../utils/router'; // Updated import
 
 export const JobFinderScreen = ({ navigation }: any) => {
-  const { jobs, isDarkMode, setIsDarkMode, fetchJobs, isLoading } = useJobs();
+  const { jobs, isDarkMode, setIsDarkMode, fetchJobs, isLoading, savedJobIds, toggleSave } = useJobs();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null); 
   const [activeTab, setActiveTab] = useState('Description'); 
-  const [savedJobs, setSavedJobs] = useState<string[]>([]);
   const listRef = useRef<FlatList>(null);
+  const router = getRouter(navigation); // Initialized router
   
   const filters = ['All', 'Full time', 'Part time', 'Contract', 'Internship'];
 
@@ -39,11 +40,7 @@ export const JobFinderScreen = ({ navigation }: any) => {
     cardBg: isDarkMode ? '#161B22' : '#FFFFFF',
     accent: '#0A66C2',
     secondaryText: isDarkMode ? '#8B949E' : '#65676B',
-    refreshBg: isDarkMode ? '#30363D' : '#FFFFFF' // Specific background for the refresh circle
-  };
-
-  const toggleSave = (id: string) => {
-    setSavedJobs(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    refreshBg: isDarkMode ? '#30363D' : '#FFFFFF'
   };
 
   const displayJobs = useMemo(() => {
@@ -136,7 +133,11 @@ export const JobFinderScreen = ({ navigation }: any) => {
             <View style={[localStyles.footerActions, { backgroundColor: theme.cardBg, borderTopColor: theme.border }]}>
               <TouchableOpacity 
                 style={localStyles.applyBtn} 
-                onPress={() => navigation.navigate('ApplyScreen', { job: selectedJob })}
+                onPress={() => {
+                  const jobToApply = selectedJob;
+                  setSelectedJob(null);
+                  router.push('ApplyScreen', { job: jobToApply }); // Updated to router.push
+                }}
               >
                 <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Apply Now</Text>
               </TouchableOpacity>
@@ -146,7 +147,7 @@ export const JobFinderScreen = ({ navigation }: any) => {
                 onPress={() => toggleSave(selectedJob?.id)}
               >
                 <Ionicons 
-                  name={savedJobs.includes(selectedJob?.id) ? "bookmark" : "bookmark-outline"} 
+                  name={savedJobIds.includes(selectedJob?.id) ? "bookmark" : "bookmark-outline"} 
                   size={24} 
                   color={theme.accent} 
                 />
@@ -197,18 +198,18 @@ export const JobFinderScreen = ({ navigation }: any) => {
           <RefreshControl 
             refreshing={refreshing} 
             onRefresh={onRefresh} 
-            tintColor={theme.accent} // iOS Spinner Color
-            colors={[theme.accent]}   // Android Spinner Color
-            progressBackgroundColor={theme.refreshBg} // Background of the spinner circle
+            tintColor={theme.accent} 
+            colors={[theme.accent]}   
+            progressBackgroundColor={theme.refreshBg} 
           />
         }
         renderItem={({ item }) => (
           <JobCard 
             job={item} 
-            isSaved={savedJobs.includes(item.id)}
+            isSaved={savedJobIds.includes(item.id)}
             onSave={() => toggleSave(item.id)}
             onOpenDetails={() => setSelectedJob(item)}
-            onApply={() => navigation.navigate('ApplyScreen', { job: item })}
+            onApply={() => router.push('ApplyScreen', { job: item })} // Updated to router.push
           />
         )}
       />

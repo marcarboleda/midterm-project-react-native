@@ -8,10 +8,16 @@ export const JobProvider = ({ children }: any) => {
   const [jobs, setJobs] = useState([]);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [savedJobIds, setSavedJobIds] = useState<string[]>([]); // Added this
 
   useEffect(() => {
     fetchJobs();
   }, []);
+
+  // Global toggle function
+  const toggleSave = (id: string) => {
+    setSavedJobIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
 
   const formatSalary = (min: number, max: number, currency: string) => {
     if (!min && !max) return "Salary Negotiable";
@@ -27,7 +33,6 @@ export const JobProvider = ({ children }: any) => {
     try {
       const response = await fetch('https://empllo.com/api/v1');
       const json = await response.json();
-      
       const rawJobs = json.jobs || [];
 
       const jobsWithIds = rawJobs.map((job: any) => ({
@@ -38,7 +43,6 @@ export const JobProvider = ({ children }: any) => {
         companyLogo: job.companyLogo || null,
         location: job.locations ? job.locations[0] : 'Remote',
         type: job.jobType || 'Full time',
-        // New salary logic based on your sample data
         salary: formatSalary(job.minSalary, job.maxSalary, job.currency),
         description: job.description || '',
       }));
@@ -52,7 +56,15 @@ export const JobProvider = ({ children }: any) => {
   };
 
   return (
-    <JobContext.Provider value={{ jobs, isDarkMode, setIsDarkMode, fetchJobs, isLoading }}>
+    <JobContext.Provider value={{ 
+      jobs, 
+      isDarkMode, 
+      setIsDarkMode, 
+      fetchJobs, 
+      isLoading,
+      savedJobIds,
+      toggleSave 
+    }}>
       {children}
     </JobContext.Provider>
   );

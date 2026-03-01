@@ -1,11 +1,13 @@
 import React from 'react';
-import { ScrollView, View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, SafeAreaView, StyleSheet } from 'react-native';
 import { useJobs } from '../context/JobContext';
 import { formStyles as styles } from '../styles/formStyles';
+import { getRouter } from '../utils/router';
 
 export const JobDetailsScreen = ({ route, navigation }: any) => {
   const { job } = route.params;
   const { isDarkMode } = useJobs();
+  const router = getRouter(navigation);
 
   const theme = {
     bg: isDarkMode ? '#0D1117' : '#F8F9FA',
@@ -23,7 +25,7 @@ export const JobDetailsScreen = ({ route, navigation }: any) => {
           
           <View style={{ marginVertical: 15, padding: 12, backgroundColor: isDarkMode ? '#0D1117' : '#F0F2F5', borderRadius: 8 }}>
              <Text style={{ color: '#28a745', fontWeight: '800' }}>
-               💰 {job.salary || 'Salary: Competitive'}
+                💰 {job.salary || 'Salary: Competitive'}
              </Text>
           </View>
 
@@ -33,7 +35,7 @@ export const JobDetailsScreen = ({ route, navigation }: any) => {
 
           <TouchableOpacity 
             style={[styles.submitBtn, { marginTop: 30 }]} 
-            onPress={() => navigation.navigate('ApplyScreen', { job })}
+            onPress={() => router.push('ApplyScreen', { job })}
           >
             <Text style={styles.submitBtnText}>Apply Now</Text>
           </TouchableOpacity>
