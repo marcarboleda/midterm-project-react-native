@@ -5,6 +5,7 @@ import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { JobFinderScreen } from '../screens/JobFinderScreen';
 import { SavedJobsScreen } from '../screens/SavedJobsScreen';
 import { ApplyScreen } from '../screens/ApplyScreen';
+import { JobDetailsScreen } from '../screens/JobDetailsScreen'; // Import this
 import { Ionicons } from '@expo/vector-icons';
 import { useJobs } from '../context/JobContext';
 
@@ -14,6 +15,14 @@ const Stack = createNativeStackNavigator();
 const HomeStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="JobFinderHome" component={JobFinderScreen} />
+    <Stack.Screen name="ApplyScreen" component={ApplyScreen} />
+  </Stack.Navigator>
+);
+
+const SavedStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="SavedJobsHome" component={SavedJobsScreen} />
+    <Stack.Screen name="JobDetails" component={JobDetailsScreen} />
     <Stack.Screen name="ApplyScreen" component={ApplyScreen} />
   </Stack.Navigator>
 );
@@ -30,8 +39,7 @@ export const TabNavigator = () => {
         },
         tabBarStyle: ((route) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? '';
-          // Hides tab bar when navigating to ApplyScreen or ApplicationForm inside the stack
-          if (routeName === 'ApplyScreen' || routeName === 'ApplicationForm') {
+          if (routeName === 'ApplyScreen' || routeName === 'ApplicationForm' || routeName === 'JobDetails') {
             return { display: 'none' };
           }
           return {
@@ -46,7 +54,7 @@ export const TabNavigator = () => {
       })}
     >
       <Tab.Screen name="Home" component={HomeStack} />
-      <Tab.Screen name="Saved" component={SavedJobsScreen} />
+      <Tab.Screen name="Saved" component={SavedStack} />
     </Tab.Navigator>
   );
 };

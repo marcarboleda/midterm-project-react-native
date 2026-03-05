@@ -103,7 +103,7 @@ export const ApplyScreen = ({ route, navigation }: any) => {
       { text: "Review", style: "cancel" },
       { text: "Submit", onPress: () => {
           Alert.alert("Success!", "Application sent.", [
-            { text: "OK", onPress: () => router.reset('JobFinderScreen') }
+            { text: "OK", onPress: () => navigation.popToTop() }
           ]);
       }}
     ]);

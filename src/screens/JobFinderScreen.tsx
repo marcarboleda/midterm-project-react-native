@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   View, Text, FlatList, TouchableOpacity, ScrollView, 
-  StatusBar, TextInput, RefreshControl, Modal, ActivityIndicator, Image, Keyboard
+  StatusBar, TextInput, RefreshControl, Modal, ActivityIndicator, Image, Keyboard, Alert
 } from 'react-native';
 import { useJobs } from '../context/JobContext';
 import { JobCard } from '../components/JobCard';
@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getRouter } from '../utils/router';
 import { getStyles } from '../styles/JobFinderScreenStyles';
 
-export const JobFinderScreen = ({ navigation }: any) => {
+export const JobFinderScreen = ({ navigation, route }: any) => { // Added route
   const { jobs, isDarkMode, setIsDarkMode, fetchJobs, isLoading, savedJobIds, toggleSave } = useJobs();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
@@ -34,6 +34,15 @@ export const JobFinderScreen = ({ navigation }: any) => {
 
   const localStyles = getStyles(theme);
 
+  // Catch the job passed from SavedJobsScreen and open the modal
+  useEffect(() => {
+    if (route.params?.selectedJob) {
+      setSelectedJob(route.params.selectedJob);
+      // Optional: Clear the params so it doesn't reopen on every focus
+      navigation.setParams({ selectedJob: undefined });
+    }
+  }, [route.params?.selectedJob]);
+
   useEffect(() => {
     if (listRef.current && displayJobs.length > 0) {
       listRef.current.scrollToOffset({ offset: 0, animated: true });
@@ -44,6 +53,21 @@ export const JobFinderScreen = ({ navigation }: any) => {
     setRefreshing(true);
     await fetchJobs();
     setRefreshing(false);
+  };
+
+  const handleToggleSave = (jobId: string) => {
+    if (savedJobIds.includes(jobId)) {
+      Alert.alert(
+        "Unsave Job",
+        "Are you sure you want to remove this job from your saved list?",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Unsave", style: "destructive", onPress: () => toggleSave(jobId) }
+        ]
+      );
+    } else {
+      toggleSave(jobId);
+    }
   };
 
   const displayJobs = useMemo(() => {
@@ -166,7 +190,7 @@ export const JobFinderScreen = ({ navigation }: any) => {
               
               <TouchableOpacity 
                 style={[localStyles.saveBtnAction, { borderColor: theme.border }]} 
-                onPress={() => toggleSave(selectedJob?.id)}
+                onPress={() => handleToggleSave(selectedJob?.id)}
               >
                 <Ionicons 
                   name={savedJobIds.includes(selectedJob?.id) ? "bookmark" : "bookmark-outline"} 
@@ -237,7 +261,7 @@ export const JobFinderScreen = ({ navigation }: any) => {
           <JobCard 
             job={item} 
             isSaved={savedJobIds.includes(item.id)}
-            onSave={() => toggleSave(item.id)}
+            onSave={() => handleToggleSave(item.id)}
             onOpenDetails={() => setSelectedJob(item)}
             onApply={() => router.push('ApplyScreen', { job: item })}
           />
