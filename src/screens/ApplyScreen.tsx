@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useJobs } from '../context/JobContext';
 import { Ionicons } from '@expo/vector-icons';
 import { getRouter } from '../utils/router';
-import { getStyles } from '../styles/ApplyScreenStyles'; // Updated import path
+import { getStyles } from '../styles/ApplyScreenStyles'; 
 
 export const ApplyScreen = ({ route, navigation }: any) => {
   const { job } = route.params;
@@ -103,7 +103,7 @@ export const ApplyScreen = ({ route, navigation }: any) => {
       { text: "Review", style: "cancel" },
       { text: "Submit", onPress: () => {
           Alert.alert("Success!", "Application sent.", [
-            { text: "OK", onPress: () => router.replace('JobFinderHome') }
+            { text: "OK", onPress: () => router.reset('JobFinderScreen') }
           ]);
       }}
     ]);
