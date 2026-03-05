@@ -228,8 +228,8 @@ export const JobFinderScreen = ({ navigation }: any) => {
           <RefreshControl 
             refreshing={refreshing} 
             onRefresh={onRefresh} 
-            tintColor={theme.accent} 
-            colors={[theme.accent]}   
+            tintColor={isDarkMode ? '#FFFFFF' : theme.accent} 
+            colors={[isDarkMode ? '#FFFFFF' : theme.accent]}   
             progressBackgroundColor={theme.refreshBg} 
           />
         }
