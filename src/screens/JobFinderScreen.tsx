@@ -181,7 +181,7 @@ export const JobFinderScreen = ({ navigation }: any) => {
 
       <View style={styles.headerContainer}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={[styles.screenTitle, { color: theme.text }]}>Job Finder</Text>
+          <Text style={[styles.screenTitle, { color: theme.text }]}>CareerPath</Text>
           <TouchableOpacity onPress={() => setIsDarkMode(!isDarkMode)}>
             <Ionicons name={isDarkMode ? "sunny" : "moon"} size={26} color={isDarkMode ? "#FDB813" : "#1F2328"} />
           </TouchableOpacity>
