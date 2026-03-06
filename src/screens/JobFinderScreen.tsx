@@ -10,13 +10,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { getRouter } from '../utils/router';
 import { getStyles } from '../styles/JobFinderScreenStyles';
 
-export const JobFinderScreen = ({ navigation, route }: any) => { // Added route
+export const JobFinderScreen = ({ navigation, route }: any) => { 
   const { jobs, isDarkMode, setIsDarkMode, fetchJobs, isLoading, savedJobIds, toggleSave } = useJobs();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null); 
   const [activeTab, setActiveTab] = useState('Description'); 
+  const [localJobs, setLocalJobs] = useState<any[]>([]);
   const listRef = useRef<FlatList>(null);
   const router = getRouter(navigation);
   
@@ -34,11 +35,24 @@ export const JobFinderScreen = ({ navigation, route }: any) => { // Added route
 
   const localStyles = getStyles(theme);
 
-  // Catch the job passed from SavedJobsScreen and open the modal
+  const shuffleArray = (array: any[]) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  useEffect(() => {
+    if (jobs && jobs.length > 0 && localJobs.length === 0) {
+      setLocalJobs(shuffleArray(jobs));
+    }
+  }, [jobs]);
+
   useEffect(() => {
     if (route.params?.selectedJob) {
       setSelectedJob(route.params.selectedJob);
-      // Optional: Clear the params so it doesn't reopen on every focus
       navigation.setParams({ selectedJob: undefined });
     }
   }, [route.params?.selectedJob]);
@@ -52,6 +66,7 @@ export const JobFinderScreen = ({ navigation, route }: any) => { // Added route
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchJobs();
+    setLocalJobs(shuffleArray(jobs));
     setRefreshing(false);
   };
 
@@ -71,8 +86,10 @@ export const JobFinderScreen = ({ navigation, route }: any) => { // Added route
   };
 
   const displayJobs = useMemo(() => {
-    if (!jobs || jobs.length === 0) return [];
-    return jobs.filter((j: any) => {
+    const sourceJobs = localJobs.length > 0 ? localJobs : jobs;
+    if (!sourceJobs || sourceJobs.length === 0) return [];
+    
+    return sourceJobs.filter((j: any) => {
       const searchTerm = search.toLowerCase();
       const title = (j.title || "").toLowerCase();
       const company = (j.companyName || "").toLowerCase();
@@ -86,7 +103,7 @@ export const JobFinderScreen = ({ navigation, route }: any) => { // Added route
       
       return jobType === selectedFilter;
     });
-  }, [jobs, search, filter]);
+  }, [localJobs, jobs, search, filter]);
 
   const renderEmptyState = () => (
     <View style={localStyles.emptyContainer}>
